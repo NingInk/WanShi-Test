@@ -9,15 +9,15 @@ public class UIController : MonoBehaviour
     public static Toggle current;
     public static UnitGroup group;
 
+    public static bool isPlaying;
+
     public Toggle[] togs;
     public RectTransform[] tras;
 
-    public UIController ins;
-    private void Awake()
+
+    public void StartGame()
     {
-        ins = this;
+        isPlaying = true;
     }
-
-
 
 }

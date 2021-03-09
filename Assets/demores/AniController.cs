@@ -55,5 +55,4 @@ public static class Ani
     public static string sit_idle = "sit_idle";
     public static string stand = "stand";
     public static string tumbling = "tumbling";
-
 }
