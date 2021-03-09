@@ -816,7 +816,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2282334148601499837}
   - component: {fileID: 2282334148608497003}
-  - component: {fileID: 2282334148601629193}
   m_Layer: 0
   m_Name: ch_05_01
   m_TagString: Untagged
@@ -868,18 +867,6 @@ Animation:
   m_PlayAutomatically: 1
   m_AnimatePhysics: 0
   m_CullingType: 0
---- !u!114 &2282334148601629193
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2282334148601662685}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 73680c5d140ecff4791cfd7384b3b487, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2282334148601662687
 GameObject:
   m_ObjectHideFlags: 0

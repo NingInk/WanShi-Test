@@ -45,7 +45,7 @@ public static class Ani
     public static string idle = "idle@loop";
     public static string walk = "walk@loop";
     public static string run = "run@loop";
-    public static string danmage = "danmage";
+    public static string danmage = "damage";
     public static string die = "die";
     public static string attack1 = "attack_sword_01";
     public static string attack2 = "attack_sword_02";

@@ -40,6 +40,7 @@ public class UnitGroup : MonoBehaviour
             {
                 if (item.GetComponent<BaseUnit>()._name == UIController.current.GetComponentInChildren<Text>().text)
                 {
+                    item.tag = transform.tag;
                     return item;
                 }
             }
