@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Sword : Weapon
+public class Unit_Saber : Unit_Base
 {
-    
+ 
 }

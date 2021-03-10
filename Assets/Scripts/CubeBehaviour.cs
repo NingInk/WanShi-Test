@@ -7,9 +7,9 @@ public class CubeBehaviour : MonoBehaviour
 {
     private void OnMouseEnter()
     {
-        if (UIController.current)
+        if (Controller.current)
         {
-            GetComponent<Renderer>().material.color = UIController.current.graphic.color;
+            GetComponent<Renderer>().material.color = Controller.current.graphic.color;
         }
         else
         {
@@ -20,22 +20,24 @@ public class CubeBehaviour : MonoBehaviour
     bool have = false;
     private void OnMouseDown()
     {
-        if (have)
+        if (have && Controller.IsPlaying)
             return;
         have = true;
-        if (UIController.group)
+        if (Controller.group)
         {
-            GameObject gg = UIController.group.GetGameObject();
+            GameObject gg = Controller.group.GetGameObject();
             if (gg != null)
             {
                 gg = Instantiate(gg, new Vector3(transform.position.x, 0, transform.position.z), Quaternion.identity);
                 if (gg.tag == "Red")
                 {
-                    gg.transform.SetParent(UIController.Instance.redBornAt.transform);
+                    gg.transform.SetParent(Controller.Instance.redBornAt.transform);
+                    gg.GetComponentInChildren<Image>().color = Color.red;
                 }
                 if (gg.tag == "Blue")
                 {
-                    gg.transform.SetParent(UIController.Instance.BlueBornAt.transform);
+                    gg.transform.SetParent(Controller.Instance.BlueBornAt.transform);
+                    gg.GetComponentInChildren<Image>().color = Color.blue;
                 }
                 gg.transform.eulerAngles = Vector3.up * Random.Range(0f, 360f);
             }

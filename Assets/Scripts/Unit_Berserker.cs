@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SaberUnit : BaseUnit
+public class Unit_Berserker : Unit_Base
 {
- 
+
 }

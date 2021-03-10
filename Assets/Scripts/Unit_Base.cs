@@ -5,9 +5,9 @@ using UnityEngine.UI;
 using UnityEngine.AI;
 
 [RequireComponent(typeof(CapsuleCollider))]
-public class BaseUnit : MonoBehaviour
+public class Unit_Base : MonoBehaviour
 {
-    AniState currnetState = AniState.None;
+    public AniState currnetState = AniState.None;
 
     protected NavMeshAgent nav;
     protected Animation ani;
@@ -21,15 +21,21 @@ public class BaseUnit : MonoBehaviour
     [Header("攻击")]
     public float act = 0.5f;
     public GameObject target;//目标
-
+    public int m_angle = 10;
+    public int rot_speed = 1;
     AniState tempState;
-
+    Vector3 tempPos;
     float timer;
     List<GameObject> enemys;
+    public Image i_blood;
+
+    float totalBlood;
     protected virtual void Awake()
     {
+        totalBlood = bloodVolume;
+        i_blood = GetComponentInChildren<Image>();
         enemys = new List<GameObject>();
-        GetComponentInChildren<Weapon>().master = gameObject;
+        GetComponentInChildren<Weapon_Base>().master = gameObject;
         nav = GetComponent<NavMeshAgent>();
         ani = GetComponent<Animation>();
     }
@@ -38,13 +44,13 @@ public class BaseUnit : MonoBehaviour
     {
         nav.stoppingDistance = act;
         ani.Play(Ani.idle);
-        if (UIController.IsPlaying)
+        if (Controller.IsPlaying)
         {
             currnetState = AniState.Tour;
         }
         else
         {
-            UIController.playAct += () => { currnetState = AniState.Tour; };
+            Controller.playAct += () => { currnetState = AniState.Tour; };
         }
     }
 
@@ -63,24 +69,66 @@ public class BaseUnit : MonoBehaviour
             return;
         }
 
-        if (!target)
+        if (target == null)
         {
             foreach (var enemy in enemys)
             {
                 if (enemy)
                 {
                     target = enemy;
+                    break;
                 }
+            }
+            if (Controller.IsPlaying && !target)
+            {
+                currnetState = AniState.Tour;
+            }
+        }
+        if (target != null)
+        {
+            if (Vector3.Distance(target.transform.position, transform.position) <= act)
+            {
+                Ray ray = new Ray(transform.position + Vector3.up * 0.25f, target.transform.position - transform.position);
+                RaycastHit hit;
+                Vector3 dir = target.transform.position - transform.position;
+                if (Vector3.Angle(transform.forward, dir) > m_angle)
+                {
+                    if (Vector3.Cross(transform.forward, dir).y < 0)
+                    {
+                        transform.localEulerAngles = transform.localEulerAngles -= Vector3.up * Time.deltaTime * rot_speed;
+                    }
+                    else
+                    {
+                        transform.localEulerAngles = transform.localEulerAngles += Vector3.up * Time.deltaTime * rot_speed;
+                    }
+                }
+                else if (Physics.Raycast(ray, out hit) && hit.collider.tag != target.tag)
+                {
+                    currnetState = AniState.Trace;
+                }
+                else
+                {
+                    currnetState = AniState.Attack;
+                }
+            }
+            if (Vector3.Distance(target.transform.position, transform.position) > view)
+            {
+                currnetState = AniState.Trace;
             }
         }
 
         switch (currnetState)
         {
             case AniState.None:
+                if (!Controller.IsPlaying)
+                {
+                    ani.CrossFade(Ani.idle, 0.2f);
+                }
                 break;
             case AniState.Tour:
                 if (!ani.IsPlaying(Ani.walk))
                 {
+                    tempPos = Controller.floors[Random.Range(0, Controller.floors.Length)].transform.position;
                     ani.CrossFade(Ani.walk, 0.2f);
                     if (current != null)
                     {
@@ -89,39 +137,25 @@ public class BaseUnit : MonoBehaviour
                     }
                     StartCoroutine(MakeAnInspectionTour());
                 }
-                nav.destination = transform.position + transform.forward;
+                if (Vector3.Distance(transform.position, tempPos) < act)
+                {
+
+                    tempPos = Controller.floors[Random.Range(0, Controller.floors.Length)].transform.position;
+                }
+
+                nav.destination = tempPos/*transform.position + transform.forward*/;
+
                 nav.speed = 0.5f * speed;
-                Debug.Log(nav.speed);
                 break;
             case AniState.Trace:
-                if (!target)
-                {
-                    currnetState = AniState.Tour;
-                    return;
-                }
-                if (!ani.IsPlaying(Ani.run))
+                if (!(ani.IsPlaying(Ani.run) || ani.IsPlaying(Ani.idle)))
                 {
                     ani.CrossFade(Ani.run, 0.2f);
                 }
                 nav.destination = target.transform.position;
                 nav.speed = 1 * speed;
-
-                if (Vector3.Distance(target.transform.position, transform.position) <= act)
-                {
-                    currnetState = AniState.Attack;
-                }
-
                 break;
             case AniState.Attack:
-                if (!target)
-                {
-                    currnetState = AniState.Tour;
-                    return;
-                }
-                if (Vector3.Distance(target.transform.position, transform.position) > view)
-                {
-                    currnetState = AniState.Trace; return;
-                }
                 if (!(ani.IsPlaying(Ani.attack1) || ani.IsPlaying(Ani.idle)))
                 {
                     att = false;
@@ -140,9 +174,9 @@ public class BaseUnit : MonoBehaviour
                         timer = 0;
                     }
                 }
-
                 if (ani.IsPlaying(Ani.idle))
                 {
+                    Debug.Log("CD中......");
                     timer += Time.deltaTime;
                     if (timer >= CD)
                     {
@@ -196,7 +230,10 @@ public class BaseUnit : MonoBehaviour
         bloodVolume -= i;
 
         tempState = currnetState;
-        currnetState = AniState.Danmage;
+        if (currnetState != AniState.Death)
+        {
+            currnetState = AniState.Danmage;
+        }
     }
 
     protected virtual void ObserveBlood()
@@ -204,7 +241,13 @@ public class BaseUnit : MonoBehaviour
         if (bloodVolume <= 0)
         {
             currnetState = AniState.Death;
+            if (!ani.IsPlaying(Ani.die))
+            {
+                ani.CrossFade(Ani.die, 0.2f);
+            }
+            nav.speed = 0;
         }
+        i_blood.fillAmount = bloodVolume / totalBlood;
     }
 
     /// <summary>
@@ -215,7 +258,7 @@ public class BaseUnit : MonoBehaviour
     {
         while (true)
         {
-            foreach (Transform child in transform.tag == "Red" ? UIController.Instance.BlueBornAt.transform : UIController.Instance.redBornAt.transform)
+            foreach (Transform child in transform.tag == "Red" ? Controller.Instance.BlueBornAt.transform : Controller.Instance.redBornAt.transform)
             {
                 if (Vector3.Distance(child.position, transform.position) <= view)
                 {
@@ -228,31 +271,30 @@ public class BaseUnit : MonoBehaviour
 
 
             Ray ray = new Ray(transform.position + (Vector3.up * 0.25f), transform.forward);
-            RaycastHit hit /*= GetHit(ray)*/;
+            RaycastHit hit, lhit, rhit;
 
             if (Physics.Raycast(ray, out hit, 1f))
             {
-                if (hit.collider.gameObject.name == "Cube(Clone)")
+                if (hit.collider.gameObject.tag == "Wall")
                 {
-                    //ray = new Ray(transform.position + (Vector3.up * 0.25f), transform.right);
-                    //if (Physics.Raycast(ray, out hit, 1f))
+                    Ray rray = new Ray(transform.position + (Vector3.up * 0.25f), transform.right);
+                    Ray lray = new Ray(transform.position + (Vector3.up * 0.25f), -transform.right);
+                    Physics.Raycast(lray, out lhit, Mathf.Infinity);
+                    Physics.Raycast(rray, out rhit, Mathf.Infinity);
+                    if (Vector3.Distance(lhit.point, transform.position) > Vector3.Distance(rhit.point, transform.position))
                     {
-                        transform.localEulerAngles += Vector3.up * 3 * Time.deltaTime;
+                        transform.localEulerAngles -= Vector3.up * 90 * Time.deltaTime;
                     }
-                    //ray = new Ray(transform.position + (Vector3.up * 0.25f), transform.right);
-
+                    else
+                    {
+                        transform.localEulerAngles += Vector3.up * 90 * Time.deltaTime;
+                    }
                 }
             }
             yield return null;
         }
     }
 
-    RaycastHit GetHit(Ray ray)
-    {
-        RaycastHit hit;
-        Physics.Raycast(ray, out hit, 1f);
-        return hit;
-    }
 }
 
 public enum AniState

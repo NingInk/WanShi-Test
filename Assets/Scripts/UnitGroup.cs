@@ -9,22 +9,22 @@ public class UnitGroup : MonoBehaviour
     public GameObject unit_ex;
     private void OnEnable()
     {
-        UIController.group = this;
+        Controller.group = this;
 
         for (int i = 0; i < units.Length; i++)
         {
             GameObject gg = Instantiate(unit_ex, transform);
-            gg.GetComponentInChildren<Text>().text = units[i].GetComponent<BaseUnit>()._name;
+            gg.GetComponentInChildren<Text>().text = units[i].GetComponent<Unit_Base>()._name;
             gg.GetComponent<Toggle>().group = GetComponent<ToggleGroup>();
-            gg.GetComponent<Toggle>().onValueChanged.AddListener((bool arg0) => { UIController.current = gg.GetComponent<Toggle>(); });
+            gg.GetComponent<Toggle>().onValueChanged.AddListener((bool arg0) => { Controller.current = gg.GetComponent<Toggle>(); });
         }
     }
 
     private void OnDisable()
     {
-        if (UIController.group = this)
+        if (Controller.group = this)
         {
-            UIController.group = null;
+            Controller.group = null;
         }
         foreach (Transform child in transform)
         {
@@ -34,11 +34,11 @@ public class UnitGroup : MonoBehaviour
 
     public GameObject GetGameObject()
     {
-        if (UIController.current)
+        if (Controller.current)
         {
             foreach (var item in units)
             {
-                if (item.GetComponent<BaseUnit>()._name == UIController.current.GetComponentInChildren<Text>().text)
+                if (item.GetComponent<Unit_Base>()._name == Controller.current.GetComponentInChildren<Text>().text)
                 {
                     item.tag = transform.tag;
                     return item;
